@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import toast from 'react-hot-toast';
+import router from 'next/router';
 
 
 
@@ -12,20 +14,49 @@ import axios from 'axios';
 
 function Login() {
 
+    const router = useRouter()
     const [user,setUser] =  useState({
         email:'',
         password:"",
         
-    })
+    });
+    const [buttonDisabled,setButtonDisabled] = useState(false)
+    const [loading,setLoading] = useState(false)
 
+    useEffect(()=>{
+      if(user.email.length > 0  && user.password.length > 0){
+        setButtonDisabled(false)
+      }else{
+        setButtonDisabled(true)
+      }
+
+    },[user])
+
+   
     const loginHandler = async ()=>{
+      setLoading(true)
+
+      try{
+
+        setLoading(true);
+        const response = await axios.post('api/users/login',user);
+        console.log("Login succes",response);
+        toast.success('Login Succes');
+        router.push('/profile')
+
+      }catch(error:any){
+        console.log('Login failed',error.message);
+        toast.error(error.message)
+      } finally{
+        setLoading(false)
+      }
+
 
     }
 
   return (
     <div className='flex flex-col items-center justify-center min-h-screen py-2'>
-        <h1>Login</h1>
-        <hr />
+<h1>{loading ? "Process":"Login"}</h1>        <hr />
         
         <label htmlFor='email'>Email</label>
         <input 
@@ -47,7 +78,7 @@ function Login() {
         />
         <button
         onClick={loginHandler} 
-        className='p-2 border border-gray-300 rounded-lg mn-4 focus:outline-none focus:border-gray-600 '>Login here</button>
+        className='p-2 border border-gray-300 rounded-lg mn-4 focus:outline-none focus:border-gray-600 '>{buttonDisabled ? 'No Login':'Login here'}</button>
         <Link href='/signup'>Visit Signup</Link>
     </div>
   )
